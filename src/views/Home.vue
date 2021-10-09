@@ -25,12 +25,22 @@
     <div class="text-gray-500 text-3xl mt-10 mb-6">Fetching Data</div>
     <img :src="loadingImage" class="w-24 m-auto" alt="" />
   </main>
+
+  <div v-if="weatherData.weather">
+    <h1>{{ Math.round(weatherData.weather.main.temp) }}&deg;</h1>
+    <h2>{{ weatherData.weather.main.humidity }}</h2>
+    <h2>{{ weatherData.weather.main.pressure }}</h2>
+  </div>
+
+  <input type="text" v-model="weatherData.city" @keyup.enter="getWeather" />
 </template>
 
 <script>
 import DataTitle from "@/components/DataTitle";
 import DataBoxes from "@/components/DataBoxes";
 import CountrySelect from "@/components/CountrySelect";
+import { reactive } from "vue";
+import axios from "axios";
 
 export default {
   name: "Home",
@@ -45,6 +55,28 @@ export default {
       loadingImage: require("../assets/hourglass.gif"),
     };
   },
+
+  setup() {
+    let weatherData = reactive({
+      city: "",
+      weather: null,
+    });
+
+    const apiUrl = `http://localhost:3000/`;
+
+    const getWeather = () => {
+      axios(`${apiUrl}?q=${weatherData.city}`).then((response) => {
+        weatherData.weather = response.data;
+        console.log(weatherData.weather);
+      });
+    };
+
+    return {
+      weatherData,
+      getWeather,
+    };
+  },
+
   methods: {
     async fetchCovidData() {
       const res = await fetch("https://api.covid19api.com/summary");
